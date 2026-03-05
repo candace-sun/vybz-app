@@ -1,0 +1,23 @@
+export default {
+  dark: {
+    background: '#0A0A1A',
+    surface: '#12122A',
+    surfaceLight: '#1A1A3E',
+    card: 'rgba(26, 26, 62, 0.7)',
+    cardBorder: 'rgba(108, 43, 217, 0.3)',
+    purple: '#6C2BD9',
+    purpleLight: '#8B5CF6',
+    pink: '#FF2D78',
+    pinkLight: '#FF5C9A',
+    neonGreen: '#00FF88',
+    neonGreenDim: 'rgba(0, 255, 136, 0.15)',
+    text: '#FFFFFF',
+    textSecondary: '#A0A0C0',
+    textMuted: '#6B6B8D',
+    tabBar: '#08081A',
+    tabBarBorder: 'rgba(108, 43, 217, 0.2)',
+    xpGold: '#FFD700',
+    coinYellow: '#FFC107',
+    danger: '#FF4444',
+  },
+};
