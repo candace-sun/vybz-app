@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,43 +8,61 @@ import {
   Animated,
   Modal,
   Dimensions,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Lock, Check, Coins, Music, X, Droplets, TrendingUp } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
+} from "react-native";
+import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Lock,
+  Check,
+  Coins,
+  Music,
+  X,
+  Droplets,
+  TrendingUp,
+} from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 
-import Colors from '@/constants/colors';
-import { plants, gardenItems, stageLabels } from '@/mocks/data';
-import type { Plant } from '@/mocks/data';
+import Colors from "@/constants/colors";
+import { plants, gardenItems, stageLabels } from "@/mocks/data";
+import type { Plant } from "@/mocks/data";
 
 const theme = Colors.dark;
 const SHELF_COUNT = 3;
 const SHELF_HEIGHT = 160;
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const genreFilters = [
-  { id: 'edm', label: 'EDM', color: '#8B5CF6', icon: true, unlocked: true },
-  { id: 'rnb', label: 'R&B', color: '#FF6B35', icon: true, unlocked: true },
-  { id: 'rap', label: 'Rap', color: '#00D9A6', icon: true, unlocked: true },
-  { id: 'pop', label: 'Pop', color: '#FF2D78', icon: true, unlocked: false },
-  { id: 'rock', label: 'Rock', color: '#FFD700', icon: true, unlocked: false },
+  { id: "edm", label: "EDM", color: "#8B5CF6", icon: true, unlocked: true },
+  { id: "rnb", label: "R&B", color: "#FF6B35", icon: true, unlocked: true },
+  { id: "rap", label: "Rap", color: "#00D9A6", icon: true, unlocked: true },
+  { id: "pop", label: "Pop", color: "#FF2D78", icon: true, unlocked: false },
+  { id: "rock", label: "Rock", color: "#FFD700", icon: true, unlocked: false },
 ];
 
 const plantImages: Record<string, any> = {
-  'EDM': require('@/assets/images/plant-edm.png'),
-  'R&B': require('@/assets/images/plant-rnb.png'),
-  'Rap': require('@/assets/images/plant-rap.png'),
+  EDM: require("@/assets/images/plant-edm.png"),
+  "R&B": require("@/assets/images/plant-rnb.png"),
+  Rap: require("@/assets/images/plant-rap.png"),
 };
 
-const lotusImage = require('@/assets/images/plant-lotus.png');
+const lotusImage = require("@/assets/images/plant-lotus.png");
 
-const tabs = ['Garden', 'Greenhouse', 'Shop'] as const;
-type TabType = typeof tabs[number];
+const tabs = ["Garden", "Greenhouse", "Shop"] as const;
+type TabType = (typeof tabs)[number];
 
-function GenreFilterRow({ activeGenre, onSelect }: { activeGenre: string | null; onSelect: (id: string | null) => void }) {
+function GenreFilterRow({
+  activeGenre,
+  onSelect,
+}: {
+  activeGenre: string | null;
+  onSelect: (id: string | null) => void;
+}) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.genreRow}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.genreRow}
+    >
       {genreFilters.map((genre) => {
         const isActive = activeGenre === genre.id;
         return (
@@ -57,22 +75,28 @@ function GenreFilterRow({ activeGenre, onSelect }: { activeGenre: string | null;
             }}
             style={styles.genreFilterItem}
           >
-            <View style={[
-              styles.genreCircle,
-              { borderColor: genre.unlocked ? genre.color : '#2A2A4A' },
-              isActive && { backgroundColor: genre.color + '30' },
-              !genre.unlocked && styles.genreCircleLocked,
-            ]}>
+            <View
+              style={[
+                styles.genreCircle,
+                { borderColor: genre.unlocked ? genre.color : "#2A2A4A" },
+                isActive && { backgroundColor: genre.color + "30" },
+                !genre.unlocked && styles.genreCircleLocked,
+              ]}
+            >
               {genre.unlocked ? (
                 <Music size={18} color={genre.color} />
               ) : (
                 <Lock size={16} color="#4A4A6A" />
               )}
             </View>
-            <Text style={[
-              styles.genreLabel,
-              !genre.unlocked && styles.genreLabelLocked,
-            ]}>{genre.label}</Text>
+            <Text
+              style={[
+                styles.genreLabel,
+                !genre.unlocked && styles.genreLabelLocked,
+              ]}
+            >
+              {genre.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -80,15 +104,32 @@ function GenreFilterRow({ activeGenre, onSelect }: { activeGenre: string | null;
   );
 }
 
-function PlantInfoModal({ plant, visible, onClose }: { plant: Plant | null; visible: boolean; onClose: () => void }) {
+function PlantInfoModal({
+  plant,
+  visible,
+  onClose,
+}: {
+  plant: Plant | null;
+  visible: boolean;
+  onClose: () => void;
+}) {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
-        Animated.timing(opacityAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 65,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
       ]).start();
     } else {
       scaleAnim.setValue(0.8);
@@ -100,46 +141,82 @@ function PlantInfoModal({ plant, visible, onClose }: { plant: Plant | null; visi
 
   const imageSource = plantImages[plant.genre] || lotusImage;
   const progressPercent = (plant.xpCurrent / plant.xpNeeded) * 100;
-  const genreColor = genreFilters.find(g => g.label === plant.genre)?.color || theme.purple;
+  const genreColor =
+    genreFilters.find((g) => g.label === plant.genre)?.color || theme.purple;
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+    >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Animated.View style={[styles.modalContent, { opacity: opacityAnim, transform: [{ scale: scaleAnim }] }]}>
+        <Animated.View
+          style={[
+            styles.modalContent,
+            { opacity: opacityAnim, transform: [{ scale: scaleAnim }] },
+          ]}
+        >
           <Pressable onPress={() => {}} style={styles.modalInner}>
             <Pressable onPress={onClose} style={styles.modalClose}>
               <X size={20} color="#fff" />
             </Pressable>
 
             <View style={styles.modalPlantImageWrap}>
-              <Image source={imageSource} style={styles.modalPlantImage} contentFit="contain" />
+              <Image
+                source={imageSource}
+                style={styles.modalPlantImage}
+                contentFit="contain"
+              />
             </View>
 
             <Text style={styles.modalPlantName}>{plant.name}</Text>
-            <View style={[styles.modalGenreBadge, { backgroundColor: genreColor + '25' }]}>
+            <View
+              style={[
+                styles.modalGenreBadge,
+                { backgroundColor: genreColor + "25" },
+              ]}
+            >
               <Music size={12} color={genreColor} />
-              <Text style={[styles.modalGenreText, { color: genreColor }]}>{plant.genre}</Text>
+              <Text style={[styles.modalGenreText, { color: genreColor }]}>
+                {plant.genre}
+              </Text>
             </View>
 
             <View style={styles.modalStatsRow}>
               <View style={styles.modalStat}>
                 <TrendingUp size={14} color={theme.neonGreen} />
                 <Text style={styles.modalStatLabel}>Stage</Text>
-                <Text style={styles.modalStatValue}>{stageLabels[plant.stage - 1] || plant.stageLabel}</Text>
+                <Text style={styles.modalStatValue}>
+                  {stageLabels[plant.stage - 1] || plant.stageLabel}
+                </Text>
               </View>
               <View style={styles.modalStatDivider} />
               <View style={styles.modalStat}>
                 <Droplets size={14} color="#4FC3F7" />
                 <Text style={styles.modalStatLabel}>XP</Text>
-                <Text style={styles.modalStatValue}>{plant.xpCurrent}/{plant.xpNeeded}</Text>
+                <Text style={styles.modalStatValue}>
+                  {plant.xpCurrent}/{plant.xpNeeded}
+                </Text>
               </View>
             </View>
 
             <View style={styles.modalProgressWrap}>
               <View style={styles.modalProgressBar}>
-                <View style={[styles.modalProgressFill, { width: `${progressPercent}%`, backgroundColor: genreColor }]} />
+                <View
+                  style={[
+                    styles.modalProgressFill,
+                    {
+                      width: `${progressPercent}%`,
+                      backgroundColor: genreColor,
+                    },
+                  ]}
+                />
               </View>
-              <Text style={styles.modalProgressText}>{Math.round(progressPercent)}%</Text>
+              <Text style={styles.modalProgressText}>
+                {Math.round(progressPercent)}%
+              </Text>
             </View>
 
             <View style={styles.modalStagesRow}>
@@ -148,12 +225,25 @@ function PlantInfoModal({ plant, visible, onClose }: { plant: Plant | null; visi
                 const isCurrent = plant.stage === i + 1;
                 return (
                   <View key={label} style={styles.modalStageItem}>
-                    <View style={[
-                      styles.modalStageDot,
-                      isReached && { backgroundColor: genreColor },
-                      isCurrent && { backgroundColor: genreColor, borderWidth: 2, borderColor: '#fff' },
-                    ]} />
-                    <Text style={[styles.modalStageLabel, isCurrent && { color: '#fff' }]}>{label}</Text>
+                    <View
+                      style={[
+                        styles.modalStageDot,
+                        isReached && { backgroundColor: genreColor },
+                        isCurrent && {
+                          backgroundColor: genreColor,
+                          borderWidth: 2,
+                          borderColor: "#fff",
+                        },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.modalStageLabel,
+                        isCurrent && { color: "#fff" },
+                      ]}
+                    >
+                      {label}
+                    </Text>
                   </View>
                 );
               })}
@@ -175,7 +265,15 @@ function PlantInfoModal({ plant, visible, onClose }: { plant: Plant | null; visi
   );
 }
 
-function ShelfRow({ plantData, shelfIndex, onPlantPress }: { plantData: typeof plants; shelfIndex: number; onPlantPress: (plant: Plant) => void }) {
+function ShelfRow({
+  plantData,
+  shelfIndex,
+  onPlantPress,
+}: {
+  plantData: typeof plants;
+  shelfIndex: number;
+  onPlantPress: (plant: Plant) => void;
+}) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -224,7 +322,11 @@ function GardenTab() {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const filteredPlants = activeGenre
-    ? plants.filter(p => p.genre.toLowerCase().replace('&', 'n') === activeGenre.replace('&', 'n'))
+    ? plants.filter(
+        (p) =>
+          p.genre.toLowerCase().replace("&", "n") ===
+          activeGenre.replace("&", "n"),
+      )
     : plants;
 
   const shelves = Array.from({ length: SHELF_COUNT }, (_, i) => {
@@ -233,7 +335,7 @@ function GardenTab() {
   });
 
   const handlePlantPress = (plant: Plant) => {
-    console.log('Plant pressed:', plant.name);
+    console.log("Plant pressed:", plant.name);
     setSelectedPlant(plant);
     setModalVisible(true);
   };
@@ -243,7 +345,12 @@ function GardenTab() {
       <GenreFilterRow activeGenre={activeGenre} onSelect={setActiveGenre} />
       <View style={styles.shelvesContainer}>
         {shelves.map((shelfPlants, i) => (
-          <ShelfRow key={i} plantData={shelfPlants} shelfIndex={i} onPlantPress={handlePlantPress} />
+          <ShelfRow
+            key={i}
+            plantData={shelfPlants}
+            shelfIndex={i}
+            onPlantPress={handlePlantPress}
+          />
         ))}
       </View>
       <PlantInfoModal
@@ -258,7 +365,7 @@ function GardenTab() {
   );
 }
 
-function GreenhouseTab() {
+/* function GreenhouseTab() {
   const categories = ['Backgrounds', 'Fences', 'Animals', 'Props'] as const;
   const [activeCategory, setActiveCategory] = useState<string>('Backgrounds');
 
@@ -301,9 +408,9 @@ function GreenhouseTab() {
       </View>
     </View>
   );
-}
+} */
 
-function ShopTab() {
+/* function ShopTab() {
   const shopItems = [
     { id: 's1', name: 'Rare Seed Pack', price: 120, emoji: '🌱', desc: '3 random rare seeds' },
     { id: 's2', name: 'XP Booster', price: 80, emoji: '⚡', desc: '2x XP for 24h' },
@@ -330,15 +437,21 @@ function ShopTab() {
       ))}
     </View>
   );
-}
+} */
 
 export default function GardenScreen() {
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabType>('Garden');
+  const [activeTab, setActiveTab] = useState<TabType>("Garden");
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 8 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 8 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.tabRow}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab;
@@ -351,15 +464,25 @@ export default function GardenScreen() {
                 }}
                 style={[styles.tab, isActive && styles.tabActive]}
               >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{tab}</Text>
+                <Text
+                  style={[styles.tabText, isActive && styles.tabTextActive]}
+                >
+                  {tab}
+                </Text>
               </Pressable>
             );
           })}
         </View>
 
-        {activeTab === 'Garden' && <GardenTab />}
-        {activeTab === 'Greenhouse' && <GreenhouseTab />}
-        {activeTab === 'Shop' && <ShopTab />}
+        {activeTab === "Garden" && <GardenTab />}
+        {/* {activeTab === 'Greenhouse' && <GreenhouseTab />}
+        {activeTab === 'Shop' && <ShopTab />} */}
+
+        {(activeTab === "Greenhouse" || activeTab === "Shop") && (
+          <View style={styles.comingSoonContainer}>
+            <Text style={styles.comingSoonText}>Coming soon!</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -368,23 +491,23 @@ export default function GardenScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#080818',
+    backgroundColor: "#080818",
   },
   scrollContent: {
     paddingBottom: 32,
   },
   tabRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginHorizontal: 20,
     marginBottom: 16,
-    backgroundColor: '#10102A',
+    backgroundColor: "#10102A",
     borderRadius: 28,
     padding: 4,
   },
   tab: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 10,
     borderRadius: 24,
   },
@@ -393,11 +516,11 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
     color: theme.textMuted,
   },
   tabTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   genreRow: {
     paddingHorizontal: 20,
@@ -405,7 +528,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   genreFilterItem: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 6,
   },
   genreCircle: {
@@ -413,17 +536,17 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(20, 20, 40, 0.8)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(20, 20, 40, 0.8)",
   },
   genreCircleLocked: {
-    backgroundColor: '#15152A',
-    borderColor: '#2A2A4A',
+    backgroundColor: "#15152A",
+    borderColor: "#2A2A4A",
   },
   genreLabel: {
     fontSize: 12,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
     color: theme.textSecondary,
   },
   genreLabelLocked: {
@@ -435,14 +558,14 @@ const styles = StyleSheet.create({
   shelfContainer: {
     height: SHELF_HEIGHT,
     marginBottom: 8,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   shelfPlantsArea: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: 12,
     gap: 12,
-    position: 'absolute',
+    position: "absolute",
     bottom: 18,
     left: 0,
     right: 0,
@@ -451,8 +574,8 @@ const styles = StyleSheet.create({
   plantOnShelf: {
     width: 105,
     height: 115,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    justifyContent: "flex-end",
+    alignItems: "center",
   },
   plantImage: {
     width: 100,
@@ -460,21 +583,21 @@ const styles = StyleSheet.create({
   },
   shelf: {
     height: 20,
-    position: 'relative',
+    position: "relative",
   },
   shelfSurface: {
     height: 6,
-    backgroundColor: '#2A1A4A',
+    backgroundColor: "#2A1A4A",
     borderRadius: 3,
     marginHorizontal: 4,
   },
   shelfGlow: {
     height: 14,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(138, 43, 226, 0.4)',
+    borderBottomColor: "rgba(138, 43, 226, 0.4)",
     marginHorizontal: 4,
-    shadowColor: '#8B2BE2',
+    shadowColor: "#8B2BE2",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.6,
     shadowRadius: 8,
@@ -497,23 +620,23 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 13,
     color: theme.textSecondary,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   categoryTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   itemsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     paddingHorizontal: 20,
   },
   ghItem: {
-    width: '47%',
+    width: "47%",
     backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderColor: theme.cardBorder,
   },
@@ -523,42 +646,42 @@ const styles = StyleSheet.create({
   },
   ghName: {
     fontSize: 14,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
     color: theme.text,
     marginBottom: 8,
   },
   ownedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   ownedText: {
     fontSize: 12,
     color: theme.neonGreen,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   priceBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   priceText: {
     fontSize: 13,
     color: theme.coinYellow,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
   },
   shopGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     paddingHorizontal: 20,
   },
   shopCard: {
-    width: '47%',
+    width: "47%",
     backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderColor: theme.cardBorder,
   },
@@ -568,22 +691,22 @@ const styles = StyleSheet.create({
   },
   shopName: {
     fontSize: 14,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
     color: theme.text,
-    textAlign: 'center',
+    textAlign: "center",
   },
   shopDesc: {
     fontSize: 12,
     color: theme.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 4,
     marginBottom: 10,
   },
   shopPrice: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    backgroundColor: 'rgba(255, 193, 7, 0.12)',
+    backgroundColor: "rgba(255, 193, 7, 0.12)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
@@ -591,36 +714,36 @@ const styles = StyleSheet.create({
   shopPriceText: {
     fontSize: 14,
     color: theme.coinYellow,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
     width: SCREEN_WIDTH - 48,
     maxWidth: 380,
   },
   modalInner: {
-    backgroundColor: '#14142E',
+    backgroundColor: "#14142E",
     borderRadius: 24,
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(108, 43, 217, 0.3)',
+    borderColor: "rgba(108, 43, 217, 0.3)",
   },
   modalClose: {
-    position: 'absolute',
+    position: "absolute",
     top: 14,
     right: 14,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 10,
   },
   modalPlantImageWrap: {
@@ -630,18 +753,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalPlantImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   modalPlantName: {
     fontSize: 24,
-    fontWeight: '800' as const,
-    color: '#fff',
+    fontWeight: "800" as const,
+    color: "#fff",
     marginBottom: 8,
   },
   modalGenreBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 5,
@@ -650,95 +773,107 @@ const styles = StyleSheet.create({
   },
   modalGenreText: {
     fontSize: 13,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
   },
   modalStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "rgba(255,255,255,0.05)",
     borderRadius: 16,
     padding: 14,
     marginBottom: 16,
   },
   modalStat: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   modalStatLabel: {
     fontSize: 11,
     color: theme.textMuted,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   modalStatValue: {
     fontSize: 15,
-    fontWeight: '700' as const,
-    color: '#fff',
+    fontWeight: "700" as const,
+    color: "#fff",
   },
   modalStatDivider: {
     width: 1,
     height: 36,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
   modalProgressWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
     gap: 10,
     marginBottom: 16,
   },
   modalProgressBar: {
     flex: 1,
     height: 8,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   modalProgressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 4,
   },
   modalProgressText: {
     fontSize: 12,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
     color: theme.textSecondary,
     width: 36,
-    textAlign: 'right',
+    textAlign: "right",
   },
   modalStagesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     marginBottom: 20,
   },
   modalStageItem: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   modalStageDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: "rgba(255,255,255,0.12)",
   },
   modalStageLabel: {
     fontSize: 10,
     color: theme.textMuted,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   modalWaterBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    width: '100%',
+    width: "100%",
     paddingVertical: 14,
     borderRadius: 16,
   },
   modalWaterBtnText: {
     fontSize: 15,
-    fontWeight: '700' as const,
-    color: '#fff',
+    fontWeight: "700" as const,
+    color: "#fff",
+  },
+  comingSoonContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  comingSoonText: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: theme.text,
+    textAlign: "center",
   },
 });
