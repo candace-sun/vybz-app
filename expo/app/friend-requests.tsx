@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,35 +6,62 @@ import {
   Pressable,
   Animated,
   FlatList,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft, UserPlus, X } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
+} from "react-native";
+import { Image } from "expo-image";
+import { Stack, useRouter } from "expo-router";
+import { ArrowLeft, UserPlus, X } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 
-import Colors from '@/constants/colors';
-import { friendRequests, FriendRequest } from '@/mocks/data';
+import Colors from "@/constants/colors";
+import { friendRequests, FriendRequest } from "@/mocks/data";
 
 const theme = Colors.dark;
 
-function RequestCard({ item, index, onAccept, onDecline }: { item: FriendRequest; index: number; onAccept: (id: string) => void; onDecline: (id: string) => void }) {
+function RequestCard({
+  item,
+  index,
+  onAccept,
+  onDecline,
+}: {
+  item: FriendRequest;
+  index: number;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+}) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, delay: index * 80, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 400, delay: index * 80, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 80,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
 
   return (
-    <Animated.View style={[styles.requestCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <Animated.View
+      style={[
+        styles.requestCard,
+        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+      ]}
+    >
       <View style={styles.requestTop}>
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
         <View style={styles.requestInfo}>
           <Text style={styles.requestName}>{item.user}</Text>
-          <Text style={styles.requestMutual}>{item.mutualFriends} mutual friends</Text>
+          <Text style={styles.requestMutual}>
+            {item.mutualFriends} mutual friends
+          </Text>
           <View style={styles.tagsRow}>
             {item.tags.map((tag) => (
               <View key={tag} style={styles.tag}>
@@ -89,9 +116,9 @@ export default function FriendRequestsScreen() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Friend Requests',
-          headerStyle: { backgroundColor: '#080818' },
-          headerTintColor: '#fff',
+          title: "Friend Requests",
+          headerStyle: { backgroundColor: "#080818" },
+          headerTintColor: "#fff",
           headerLeft: () => (
             <Pressable onPress={() => router.back()} style={styles.backBtn}>
               <ArrowLeft size={22} color="#fff" />
@@ -103,7 +130,12 @@ export default function FriendRequestsScreen() {
         data={requests}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
-          <RequestCard item={item} index={index} onAccept={handleAccept} onDecline={handleDecline} />
+          <RequestCard
+            item={item}
+            index={index}
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+          />
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -121,7 +153,7 @@ export default function FriendRequestsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#080818',
+    backgroundColor: "#080818",
   },
   backBtn: {
     marginRight: 8,
@@ -132,14 +164,14 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   requestCard: {
-    backgroundColor: '#12122A',
+    backgroundColor: "#12122A",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(108, 43, 217, 0.2)',
+    borderColor: "rgba(108, 43, 217, 0.2)",
   },
   requestTop: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   avatar: {
@@ -152,8 +184,8 @@ const styles = StyleSheet.create({
   },
   requestName: {
     fontSize: 16,
-    fontWeight: '700' as const,
-    color: '#fff',
+    fontWeight: "700" as const,
+    color: "#fff",
   },
   requestMutual: {
     fontSize: 13,
@@ -161,12 +193,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   tagsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
     marginTop: 6,
   },
   tag: {
-    backgroundColor: 'rgba(108, 43, 217, 0.18)',
+    backgroundColor: "rgba(108, 43, 217, 0.18)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -174,22 +206,22 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 11,
     color: theme.purpleLight,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   requestTime: {
     fontSize: 12,
     color: theme.textMuted,
   },
   requestActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
     marginTop: 14,
   },
   acceptBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
     backgroundColor: theme.pink,
     borderRadius: 12,
@@ -197,35 +229,35 @@ const styles = StyleSheet.create({
   },
   acceptText: {
     fontSize: 14,
-    fontWeight: '700' as const,
-    color: '#fff',
+    fontWeight: "700" as const,
+    color: "#fff",
   },
   declineBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
   declineText: {
     fontSize: 14,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
     color: theme.textMuted,
   },
   emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingTop: 80,
     gap: 16,
   },
   emptyText: {
     fontSize: 16,
     color: theme.textMuted,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
 });
