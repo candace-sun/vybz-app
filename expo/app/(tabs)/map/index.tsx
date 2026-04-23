@@ -8,67 +8,36 @@ import {
   Modal,
   Platform,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Music, X, Bookmark, MapPin, Radio, Navigation } from 'lucide-react-native';
+import { Music, X, Play, Pause, ExternalLink, MapPin, Radio, Navigation } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { Image } from 'expo-image';
+import { Audio } from 'expo-av';
 
 import Colors from '@/constants/colors';
-import { MusicDrop } from '@/mocks/data';
+import { getNearbyDrops, collectDrop, Drop } from '@/services/api';
 
 const theme = Colors.dark;
 
 const genreColors: Record<string, string> = {
-  Pop: '#FF2D78',
-  Rap: '#6C2BD9',
-  'R&B': '#FFD700',
-  EDM: '#00FF88',
+  'Modern Pop': '#FF2D78',
+  'Rap':        '#6C2BD9',
+  'R&B':        '#FFD700',
+  'EDM':        '#00FF88',
+  'Indie':      '#4FC3F7',
 };
 
-const SONG_POOL: { song: string; artist: string; genre: string }[] = [
-  { song: 'Levitating', artist: 'Dua Lipa', genre: 'Pop' },
-  { song: 'Blinding Lights', artist: 'The Weeknd', genre: 'Pop' },
-  { song: 'HUMBLE.', artist: 'Kendrick Lamar', genre: 'Rap' },
-  { song: 'Pink + White', artist: 'Frank Ocean', genre: 'R&B' },
-  { song: 'Midnight City', artist: 'M83', genre: 'EDM' },
-  { song: 'Good Days', artist: 'SZA', genre: 'R&B' },
-  { song: 'Starboy', artist: 'The Weeknd', genre: 'Pop' },
-  { song: 'Money Trees', artist: 'Kendrick Lamar', genre: 'Rap' },
-  { song: 'Nights', artist: 'Frank Ocean', genre: 'R&B' },
-  { song: 'Strobe', artist: 'Deadmau5', genre: 'EDM' },
-  { song: 'Sicko Mode', artist: 'Travis Scott', genre: 'Rap' },
-  { song: 'Feels Like Summer', artist: 'Childish Gambino', genre: 'R&B' },
-];
-
-function generateDropsNearLocation(lat: number, lng: number): MusicDrop[] {
-  const drops: MusicDrop[] = [];
-  const shuffled = [...SONG_POOL].sort(() => Math.random() - 0.5);
-  const count = Math.min(8, shuffled.length);
-
-  for (let i = 0; i < count; i++) {
-    const angle = Math.random() * 2 * Math.PI;
-    const radiusMeters = 30 + Math.random() * 350;
-    const dLat = (radiusMeters / 111320) * Math.cos(angle);
-    const dLng = (radiusMeters / (111320 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle);
-
-    drops.push({
-      id: String(i + 1),
-      song: shuffled[i].song,
-      artist: shuffled[i].artist,
-      genre: shuffled[i].genre,
-      distance: Math.round(radiusMeters),
-      x: 0,
-      y: 0,
-      latitude: lat + dLat,
-      longitude: lng + dLng,
-      collected: Math.random() < 0.15,
-    });
-  }
-
-  return drops;
-}
+const rarityColors: Record<string, string> = {
+  common:    theme.textMuted,
+  uncommon:  theme.neonGreen,
+  rare:      '#4FC3F7',
+  epic:      theme.purpleLight,
+  legendary: theme.coinYellow,
+};
 
 const darkMapStyle = [
   { elementType: 'geometry', stylers: [{ color: '#0a0a1a' }] },
@@ -86,13 +55,21 @@ const darkMapStyle = [
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
-  const [selectedDrop, setSelectedDrop] = useState<MusicDrop | null>(null);
+  const [selectedDrop, setSelectedDrop] = useState<Drop | null>(null);
   const [showModal, setShowModal] = useState(false);
   const slideAnim = useRef(new Animated.Value(300)).current;
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [drops, setDrops] = useState<MusicDrop[]>([]);
+  const [drops, setDrops] = useState<Drop[]>([]);
+  const [collecting, setCollecting] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  // Stop audio when screen unmounts
+  useEffect(() => {
+    return () => { soundRef.current?.unloadAsync(); };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,8 +96,8 @@ export default function MapScreen() {
         console.log('[Map] Got location:', latitude, longitude);
         setUserLocation({ latitude, longitude });
 
-        const nearbyDrops = generateDropsNearLocation(latitude, longitude);
-        console.log('[Map] Generated', nearbyDrops.length, 'drops near user');
+        const nearbyDrops = await getNearbyDrops(latitude, longitude);
+        console.log('[Map] Fetched', nearbyDrops.length, 'drops near user');
         setDrops(nearbyDrops);
         setLoading(false);
       } catch (err) {
@@ -145,21 +122,53 @@ export default function MapScreen() {
     };
   }, [userLocation]);
 
-  const handleMarkerPress = useCallback((drop: MusicDrop) => {
-    console.log('Marker pressed:', drop.song);
+  const stopAudio = useCallback(async () => {
+    if (soundRef.current) {
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+    setIsPlaying(false);
+  }, []);
+
+  const handleMarkerPress = useCallback(async (drop: Drop) => {
+    await stopAudio();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedDrop(drop);
     setShowModal(true);
     slideAnim.setValue(300);
     Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20 }).start();
-  }, [slideAnim]);
+  }, [slideAnim, stopAudio]);
 
   const handleClose = useCallback(() => {
+    stopAudio();
     Animated.timing(slideAnim, { toValue: 300, duration: 200, useNativeDriver: true }).start(() => {
       setShowModal(false);
       setSelectedDrop(null);
     });
-  }, [slideAnim]);
+  }, [slideAnim, stopAudio]);
+
+  const handleTogglePreview = useCallback(async (previewUrl: string) => {
+    if (isPlaying) {
+      await stopAudio();
+      return;
+    }
+    try {
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: previewUrl },
+        { shouldPlay: true }
+      );
+      soundRef.current = sound;
+      setIsPlaying(true);
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          stopAudio();
+        }
+      });
+    } catch (e) {
+      console.error('Preview playback failed:', e);
+    }
+  }, [isPlaying, stopAudio]);
 
   const handleRecenter = useCallback(() => {
     if (userLocation && mapRef.current) {
@@ -246,7 +255,7 @@ export default function MapScreen() {
               {Object.entries(genreColors).map(([genre, color]) => (
                 <View key={genre} style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: color }]} />
-                  <Text style={styles.legendText}>{genre}</Text>
+                  <Text style={styles.legendText}>{genre === 'Modern Pop' ? 'Pop' : genre}</Text>
                 </View>
               ))}
             </View>
@@ -270,31 +279,89 @@ export default function MapScreen() {
                       <X size={20} color={theme.textSecondary} />
                     </Pressable>
                   </View>
-                  <Text style={styles.modalSong}>{selectedDrop.song}</Text>
-                  <Text style={styles.modalArtist}>by {selectedDrop.artist}</Text>
-                  <View style={styles.distanceBadge}>
-                    <MapPin size={14} color={theme.textSecondary} />
-                    <Text style={styles.distanceText}>{selectedDrop.distance}m away</Text>
+
+                  {/* Album art + song info row */}
+                  <View style={styles.songRow}>
+                    {selectedDrop.image_url ? (
+                      <Image source={{ uri: selectedDrop.image_url }} style={styles.albumArt} contentFit="cover" />
+                    ) : (
+                      <View style={[styles.albumArt, styles.albumArtPlaceholder]}>
+                        <Music size={24} color={theme.textMuted} />
+                      </View>
+                    )}
+                    <View style={styles.songDetails}>
+                      <Text style={styles.modalSong} numberOfLines={2}>{selectedDrop.title}</Text>
+                      <Text style={styles.modalArtist} numberOfLines={1}>by {selectedDrop.artist}</Text>
+                      <View style={styles.metaRow}>
+                        <View style={[styles.rarityBadge, { borderColor: rarityColors[selectedDrop.rarity] ?? theme.pink }]}>
+                          <Text style={[styles.rarityText, { color: rarityColors[selectedDrop.rarity] ?? theme.pink }]}>
+                            {selectedDrop.rarity}
+                          </Text>
+                        </View>
+                        <View style={styles.distanceBadge}>
+                          <MapPin size={12} color={theme.textSecondary} />
+                          <Text style={styles.distanceText}>{Math.round(selectedDrop.distance_meters)}m</Text>
+                        </View>
+                      </View>
+                    </View>
                   </View>
-                  {selectedDrop.distance > 100 && (
+
+                  {selectedDrop.distance_meters > 200 && (
                     <Text style={styles.proximityHint}>Walk closer to collect this drop</Text>
                   )}
+
+                  {/* Preview player */}
+                  {selectedDrop.preview_url && (
+                    <Pressable
+                      style={styles.previewBtn}
+                      onPress={() => handleTogglePreview(selectedDrop.preview_url!)}
+                    >
+                      {isPlaying ? <Pause size={16} color={theme.text} /> : <Play size={16} color={theme.text} />}
+                      <Text style={styles.previewBtnText}>{isPlaying ? 'Pause preview' : 'Play 30s preview'}</Text>
+                    </Pressable>
+                  )}
+
                   <View style={styles.modalActions}>
                     <Pressable
-                      style={[styles.collectBtn, selectedDrop.distance > 100 && styles.collectBtnDisabled]}
-                      onPress={() => {
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        handleClose();
+                      style={[
+                        styles.collectBtn,
+                        (selectedDrop.collected || selectedDrop.distance_meters > 200) && styles.collectBtnDisabled,
+                      ]}
+                      disabled={selectedDrop.collected || selectedDrop.distance_meters > 200 || collecting}
+                      onPress={async () => {
+                        if (selectedDrop.collected || !userLocation) return;
+                        setCollecting(true);
+                        try {
+                          await collectDrop(selectedDrop.id, userLocation.latitude, userLocation.longitude);
+                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          setDrops(prev =>
+                            prev.map(d => d.id === selectedDrop.id ? { ...d, collected: true } : d)
+                          );
+                          setSelectedDrop({ ...selectedDrop, collected: true });
+                        } catch (e) {
+                          console.error('Failed to collect drop:', e);
+                        } finally {
+                          setCollecting(false);
+                        }
                       }}
                     >
-                      <Text style={styles.collectBtnText}>
-                        {selectedDrop.collected ? 'Collected ✓' : 'Collect'}
-                      </Text>
+                      {collecting ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.collectBtnText}>
+                          {selectedDrop.collected ? 'Collected ✓' : 'Collect'}
+                        </Text>
+                      )}
                     </Pressable>
-                    <Pressable style={styles.saveBtn}>
-                      <Bookmark size={18} color={theme.neonGreen} />
-                      <Text style={styles.saveBtnText}>Save on Spotify</Text>
-                    </Pressable>
+                    {selectedDrop.spotify_url && (
+                      <Pressable
+                        style={styles.spotifyBtn}
+                        onPress={() => Linking.openURL(selectedDrop.spotify_url!)}
+                      >
+                        <ExternalLink size={16} color={theme.neonGreen} />
+                        <Text style={styles.spotifyBtnText}>Spotify</Text>
+                      </Pressable>
+                    )}
                   </View>
                 </>
               )}
@@ -496,42 +563,92 @@ const styles = StyleSheet.create({
   modalClose: {
     padding: 4,
   },
+  songRow: {
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  albumArt: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+  },
+  albumArtPlaceholder: {
+    backgroundColor: theme.surfaceLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  songDetails: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   modalSong: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '800' as const,
     color: theme.text,
   },
   modalArtist: {
-    fontSize: 16,
+    fontSize: 14,
     color: theme.textSecondary,
-    marginTop: 4,
+    marginTop: 3,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  rarityBadge: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  rarityText: {
+    fontSize: 11,
+    fontWeight: '700' as const,
+    textTransform: 'capitalize',
   },
   distanceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 14,
+    gap: 4,
     backgroundColor: theme.surfaceLight,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   distanceText: {
-    fontSize: 13,
+    fontSize: 11,
     color: theme.textSecondary,
     fontWeight: '500' as const,
   },
   proximityHint: {
     fontSize: 13,
     color: theme.pink,
-    marginTop: 10,
+    marginTop: 8,
     fontWeight: '500' as const,
+  },
+  previewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.surfaceLight,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  previewBtnText: {
+    color: theme.text,
+    fontSize: 14,
+    fontWeight: '600' as const,
   },
   modalActions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 20,
+    marginTop: 14,
   },
   collectBtn: {
     flex: 1,
@@ -548,7 +665,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700' as const,
   },
-  saveBtn: {
+  spotifyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -557,7 +674,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
   },
-  saveBtnText: {
+  spotifyBtnText: {
     color: theme.neonGreen,
     fontSize: 13,
     fontWeight: '600' as const,

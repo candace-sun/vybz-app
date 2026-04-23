@@ -97,14 +97,16 @@ export async function getCollection() {
 
 // ── Drops ─────────────────────────────────────────────────────────────────────
 
-export async function getNearbyDrops(lat: number, lon: number, radiusMeters = 500) {
-  return request<Drop[]>(
-    `/v1/drops/nearby?lat=${lat}&lon=${lon}&radius_meters=${radiusMeters}`
-  );
+export async function getNearbyDrops(lat: number, lng: number) {
+  const data = await request<{ drops: Drop[] }>(`/v1/drops/nearby?lat=${lat}&lng=${lng}`);
+  return data.drops;
 }
 
-export async function collectDrop(dropId: number) {
-  return request<CollectResult>(`/v1/drops/${dropId}/collect`, { method: "POST" });
+export async function collectDrop(dropId: number, lat: number, lng: number) {
+  return request<CollectResult>(`/v1/drops/${dropId}/collect`, {
+    method: "POST",
+    body: JSON.stringify({ latitude: lat, longitude: lng }),
+  });
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -147,8 +149,8 @@ export interface Drop {
   title: string;
   artist: string;
   genre: string;
-  display_genre: string;
   rarity: string;
+  rarity_name: string;
   image_url: string | null;
   preview_url: string | null;
   spotify_url: string | null;
