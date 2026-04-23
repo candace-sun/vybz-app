@@ -113,6 +113,29 @@ export const plants: Plant[] = [
   { id: '1', name: 'Lotus', genre: 'EDM', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 100, xpCurrent: 0, emoji: '🪷' },
   { id: '2', name: 'Orchid', genre: 'R&B', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 80, xpCurrent: 0, emoji: '🌸' },
   { id: '3', name: 'Coleus', genre: 'Rap', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 60, xpCurrent: 0, emoji: '🌿' },
+  
+  {
+    id: "4",
+    name: "Succulent",
+    genre: "Indie",
+    stage: 1,
+    maxStage: 4,
+    stageLabel: "Seedling",
+    xpNeeded: 70,
+    xpCurrent: 0,
+    emoji: "🌿",
+  },
+  {
+    id: "5",
+    name: "Sunflower",
+    genre: "Pop",
+    stage: 1,
+    maxStage: 4,
+    stageLabel: "Seedling",
+    xpNeeded: 90,
+    xpCurrent: 0,
+    emoji: "🌷",
+  },
 ];
 
 export const gardenItems: GardenItem[] = [

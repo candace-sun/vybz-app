@@ -35,14 +35,18 @@ const genreFilters = [
   { id: "edm", label: "EDM", color: "#8B5CF6", icon: true, unlocked: true },
   { id: "rnb", label: "R&B", color: "#FF6B35", icon: true, unlocked: true },
   { id: "rap", label: "Rap", color: "#00D9A6", icon: true, unlocked: true },
-  { id: "pop", label: "Pop", color: "#FF2D78", icon: true, unlocked: false },
-  { id: "rock", label: "Rock", color: "#FFD700", icon: true, unlocked: false },
+  // { id: "pop", label: "Pop", color: "#FF2D78", icon: true, unlocked: false },
+  // { id: "rock", label: "Rock", color: "#FFD700", icon: true, unlocked: false },
+  { id: "indie", label: "Indie", color: "#4FC3F7", icon: true, unlocked: true },
+  { id: "pop", label: "Pop", color: "#FF2D78", icon: true, unlocked: true },
 ];
 
 const plantImages: Record<string, any> = {
   EDM: require("@/assets/images/plant-edm.png"),
   "R&B": require("@/assets/images/plant-rnb.png"),
   Rap: require("@/assets/images/plant-rap.png"),
+  Indie: require("@/assets/images/plant-indie.png"),
+  Pop: require("@/assets/images/plant-pop.png"),
 };
 
 const lotusImage = require("@/assets/images/plant-lotus.png");
@@ -330,8 +334,9 @@ function GardenTab() {
     : plants;
 
   const shelves = Array.from({ length: SHELF_COUNT }, (_, i) => {
-    if (i === 0) return filteredPlants;
-    return [];
+    if (i === 0) return filteredPlants.slice(0, 3); // First 3 plants on first shelf
+    if (i === 1) return filteredPlants.slice(3, 5); // Next 2 plants on second shelf
+    return []; // Third shelf empty
   });
 
   const handlePlantPress = (plant: Plant) => {

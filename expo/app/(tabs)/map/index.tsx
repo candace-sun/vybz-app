@@ -1,4 +1,10 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
@@ -9,47 +15,80 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Music, X, Play, Pause, ExternalLink, MapPin, Radio, Navigation } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
-import * as Location from 'expo-location';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
-import { Image } from 'expo-image';
-import { Audio } from 'expo-av';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Music,
+  X,
+  Play,
+  Pause,
+  ExternalLink,
+  MapPin,
+  Radio,
+  Navigation,
+} from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import * as Location from "expo-location";
+import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
+import { Image } from "expo-image";
+import { Audio } from "expo-av";
 
-import Colors from '@/constants/colors';
-import { getNearbyDrops, collectDrop, Drop } from '@/services/api';
+import Colors from "@/constants/colors";
+import { getNearbyDrops, collectDrop, Drop } from "@/services/api";
 
 const theme = Colors.dark;
 
 const genreColors: Record<string, string> = {
-  'Modern Pop': '#FF2D78',
-  'Rap':        '#6C2BD9',
-  'R&B':        '#FFD700',
-  'EDM':        '#00FF88',
-  'Indie':      '#4FC3F7',
+  "Modern Pop": "#FF2D78",
+  Rap: "#6C2BD9",
+  "R&B": "#FFD700",
+  EDM: "#00FF88",
+  Indie: "#4FC3F7",
 };
 
 const rarityColors: Record<string, string> = {
-  common:    theme.textMuted,
-  uncommon:  theme.neonGreen,
-  rare:      '#4FC3F7',
-  epic:      theme.purpleLight,
+  common: theme.textMuted,
+  uncommon: theme.neonGreen,
+  rare: "#4FC3F7",
+  epic: theme.purpleLight,
   legendary: theme.coinYellow,
 };
 
 const darkMapStyle = [
-  { elementType: 'geometry', stylers: [{ color: '#0a0a1a' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#0a0a1a' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#6b6b8d' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1a1a3e' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#12122a' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#080818' }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#12122a' }] },
-  { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#1a1a3e' }] },
+  { elementType: "geometry", stylers: [{ color: "#0a0a1a" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#0a0a1a" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#6b6b8d" }] },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#1a1a3e" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#12122a" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#080818" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "geometry",
+    stylers: [{ color: "#12122a" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels",
+    stylers: [{ visibility: "off" }],
+  },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  {
+    featureType: "administrative",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1a1a3e" }],
+  },
 ];
 
 export default function MapScreen() {
@@ -58,7 +97,10 @@ export default function MapScreen() {
   const [selectedDrop, setSelectedDrop] = useState<Drop | null>(null);
   const [showModal, setShowModal] = useState(false);
   const slideAnim = useRef(new Animated.Value(300)).current;
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [drops, setDrops] = useState<Drop[]>([]);
@@ -68,7 +110,9 @@ export default function MapScreen() {
 
   // Stop audio when screen unmounts
   useEffect(() => {
-    return () => { soundRef.current?.unloadAsync(); };
+    return () => {
+      soundRef.current?.unloadAsync();
+    };
   }, []);
 
   useEffect(() => {
@@ -76,16 +120,18 @@ export default function MapScreen() {
 
     async function fetchLocation() {
       try {
-        console.log('[Map] Requesting location permissions...');
+        console.log("[Map] Requesting location permissions...");
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          console.log('[Map] Location permission denied');
-          setLocationError('Location permission denied. Enable it in settings to see drops near you.');
+        if (status !== "granted") {
+          console.log("[Map] Location permission denied");
+          setLocationError(
+            "Location permission denied. Enable it in settings to see drops near you.",
+          );
           setLoading(false);
           return;
         }
 
-        console.log('[Map] Getting current position...');
+        console.log("[Map] Getting current position...");
         const position = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
@@ -93,23 +139,25 @@ export default function MapScreen() {
         if (cancelled) return;
 
         const { latitude, longitude } = position.coords;
-        console.log('[Map] Got location:', latitude, longitude);
+        console.log("[Map] Got location:", latitude, longitude);
         setUserLocation({ latitude, longitude });
 
         const nearbyDrops = await getNearbyDrops(latitude, longitude);
-        console.log('[Map] Fetched', nearbyDrops.length, 'drops near user');
+        console.log("[Map] Fetched", nearbyDrops.length, "drops near user");
         setDrops(nearbyDrops);
         setLoading(false);
       } catch (err) {
         if (cancelled) return;
-        console.log('[Map] Location error:', err);
-        setLocationError('Could not get your location. Please try again.');
+        console.log("[Map] Location error:", err);
+        setLocationError("Could not get your location. Please try again.");
         setLoading(false);
       }
     }
 
     fetchLocation();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const region = useMemo(() => {
@@ -117,8 +165,8 @@ export default function MapScreen() {
     return {
       latitude: userLocation.latitude,
       longitude: userLocation.longitude,
-      latitudeDelta: 0.012,
-      longitudeDelta: 0.012,
+      latitudeDelta: 0.008,
+      longitudeDelta: 0.008,
     };
   }, [userLocation]);
 
@@ -130,55 +178,72 @@ export default function MapScreen() {
     setIsPlaying(false);
   }, []);
 
-  const handleMarkerPress = useCallback(async (drop: Drop) => {
-    await stopAudio();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setSelectedDrop(drop);
-    setShowModal(true);
-    slideAnim.setValue(300);
-    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20 }).start();
-  }, [slideAnim, stopAudio]);
+  const handleMarkerPress = useCallback(
+    async (drop: Drop) => {
+      await stopAudio();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      setSelectedDrop(drop);
+      setShowModal(true);
+      slideAnim.setValue(300);
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        damping: 20,
+      }).start();
+    },
+    [slideAnim, stopAudio],
+  );
 
   const handleClose = useCallback(() => {
     stopAudio();
-    Animated.timing(slideAnim, { toValue: 300, duration: 200, useNativeDriver: true }).start(() => {
+    Animated.timing(slideAnim, {
+      toValue: 300,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
       setShowModal(false);
       setSelectedDrop(null);
     });
   }, [slideAnim, stopAudio]);
 
-  const handleTogglePreview = useCallback(async (previewUrl: string) => {
-    if (isPlaying) {
-      await stopAudio();
-      return;
-    }
-    try {
-      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: previewUrl },
-        { shouldPlay: true }
-      );
-      soundRef.current = sound;
-      setIsPlaying(true);
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          stopAudio();
-        }
-      });
-    } catch (e) {
-      console.error('Preview playback failed:', e);
-    }
-  }, [isPlaying, stopAudio]);
+  const handleTogglePreview = useCallback(
+    async (previewUrl: string) => {
+      if (isPlaying) {
+        await stopAudio();
+        return;
+      }
+      try {
+        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: previewUrl },
+          { shouldPlay: true },
+        );
+        soundRef.current = sound;
+        setIsPlaying(true);
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            stopAudio();
+          }
+        });
+      } catch (e) {
+        console.error("Preview playback failed:", e);
+      }
+    },
+    [isPlaying, stopAudio],
+  );
 
   const handleRecenter = useCallback(() => {
     if (userLocation && mapRef.current) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      mapRef.current.animateToRegion({
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        latitudeDelta: 0.012,
-        longitudeDelta: 0.012,
-      }, 500);
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.008,
+          longitudeDelta: 0.008,
+        },
+        500,
+      );
     }
   }, [userLocation]);
 
@@ -188,7 +253,7 @@ export default function MapScreen() {
         <View>
           <Text style={styles.mapTitle}>Music Map</Text>
           <Text style={styles.mapSub}>
-            {loading ? 'Locating you...' : `${drops.length} drops nearby`}
+            {loading ? "Locating you..." : `${drops.length} drops nearby`}
           </Text>
         </View>
         <View style={styles.radarBadge}>
@@ -215,7 +280,9 @@ export default function MapScreen() {
               style={styles.map}
               provider={PROVIDER_DEFAULT}
               initialRegion={region}
-              customMapStyle={Platform.OS === 'android' ? darkMapStyle : undefined}
+              customMapStyle={
+                Platform.OS === "android" ? darkMapStyle : undefined
+              }
               userInterfaceStyle="dark"
               showsUserLocation
               showsMyLocationButton={false}
@@ -236,8 +303,15 @@ export default function MapScreen() {
                     testID={`marker-${drop.id}`}
                   >
                     <View style={styles.markerContainer}>
-                      <View style={[styles.markerPulse, { backgroundColor: color }]} />
-                      <View style={[styles.markerCore, { backgroundColor: color, shadowColor: color }]}>
+                      <View
+                        style={[styles.markerPulse, { backgroundColor: color }]}
+                      />
+                      <View
+                        style={[
+                          styles.markerCore,
+                          { backgroundColor: color, shadowColor: color },
+                        ]}
+                      >
                         <Music size={12} color="#fff" />
                       </View>
                       {drop.collected && <View style={styles.collectedDot} />}
@@ -247,15 +321,23 @@ export default function MapScreen() {
               })}
             </MapView>
 
-            <Pressable style={styles.recenterBtn} onPress={handleRecenter} testID="recenter-btn">
+            <Pressable
+              style={styles.recenterBtn}
+              onPress={handleRecenter}
+              testID="recenter-btn"
+            >
               <Navigation size={18} color={theme.text} />
             </Pressable>
 
             <View style={styles.legendOverlay}>
               {Object.entries(genreColors).map(([genre, color]) => (
                 <View key={genre} style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: color }]} />
-                  <Text style={styles.legendText}>{genre === 'Modern Pop' ? 'Pop' : genre}</Text>
+                  <View
+                    style={[styles.legendDot, { backgroundColor: color }]}
+                  />
+                  <Text style={styles.legendText}>
+                    {genre === "Modern Pop" ? "Pop" : genre}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -266,14 +348,25 @@ export default function MapScreen() {
       <Modal visible={showModal} transparent animationType="none">
         <Pressable style={styles.modalOverlay} onPress={handleClose}>
           <Animated.View
-            style={[styles.modalSheet, { transform: [{ translateY: slideAnim }] }]}
+            style={[
+              styles.modalSheet,
+              { transform: [{ translateY: slideAnim }] },
+            ]}
           >
             <Pressable onPress={(e) => e.stopPropagation()}>
               <View style={styles.modalHandle} />
               {selectedDrop && (
                 <>
                   <View style={styles.modalHeader}>
-                    <View style={[styles.modalGenreDot, { backgroundColor: genreColors[selectedDrop.genre] || theme.pink }]} />
+                    <View
+                      style={[
+                        styles.modalGenreDot,
+                        {
+                          backgroundColor:
+                            genreColors[selectedDrop.genre] || theme.pink,
+                        },
+                      ]}
+                    />
                     <Text style={styles.modalGenre}>{selectedDrop.genre}</Text>
                     <Pressable onPress={handleClose} style={styles.modalClose}>
                       <X size={20} color={theme.textSecondary} />
@@ -283,41 +376,80 @@ export default function MapScreen() {
                   {/* Album art + song info row */}
                   <View style={styles.songRow}>
                     {selectedDrop.image_url ? (
-                      <Image source={{ uri: selectedDrop.image_url }} style={styles.albumArt} contentFit="cover" />
+                      <Image
+                        source={{ uri: selectedDrop.image_url }}
+                        style={styles.albumArt}
+                        contentFit="cover"
+                      />
                     ) : (
-                      <View style={[styles.albumArt, styles.albumArtPlaceholder]}>
+                      <View
+                        style={[styles.albumArt, styles.albumArtPlaceholder]}
+                      >
                         <Music size={24} color={theme.textMuted} />
                       </View>
                     )}
                     <View style={styles.songDetails}>
-                      <Text style={styles.modalSong} numberOfLines={2}>{selectedDrop.title}</Text>
-                      <Text style={styles.modalArtist} numberOfLines={1}>by {selectedDrop.artist}</Text>
+                      <Text style={styles.modalSong} numberOfLines={2}>
+                        {selectedDrop.title}
+                      </Text>
+                      <Text style={styles.modalArtist} numberOfLines={1}>
+                        by {selectedDrop.artist}
+                      </Text>
                       <View style={styles.metaRow}>
-                        <View style={[styles.rarityBadge, { borderColor: rarityColors[selectedDrop.rarity] ?? theme.pink }]}>
-                          <Text style={[styles.rarityText, { color: rarityColors[selectedDrop.rarity] ?? theme.pink }]}>
+                        <View
+                          style={[
+                            styles.rarityBadge,
+                            {
+                              borderColor:
+                                rarityColors[selectedDrop.rarity] ?? theme.pink,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.rarityText,
+                              {
+                                color:
+                                  rarityColors[selectedDrop.rarity] ??
+                                  theme.pink,
+                              },
+                            ]}
+                          >
                             {selectedDrop.rarity}
                           </Text>
                         </View>
                         <View style={styles.distanceBadge}>
                           <MapPin size={12} color={theme.textSecondary} />
-                          <Text style={styles.distanceText}>{Math.round(selectedDrop.distance_meters)}m</Text>
+                          <Text style={styles.distanceText}>
+                            {Math.round(selectedDrop.distance_meters)}m
+                          </Text>
                         </View>
                       </View>
                     </View>
                   </View>
 
                   {selectedDrop.distance_meters > 200 && (
-                    <Text style={styles.proximityHint}>Walk closer to collect this drop</Text>
+                    <Text style={styles.proximityHint}>
+                      Walk closer to collect this drop
+                    </Text>
                   )}
 
                   {/* Preview player */}
                   {selectedDrop.preview_url && (
                     <Pressable
                       style={styles.previewBtn}
-                      onPress={() => handleTogglePreview(selectedDrop.preview_url!)}
+                      onPress={() =>
+                        handleTogglePreview(selectedDrop.preview_url!)
+                      }
                     >
-                      {isPlaying ? <Pause size={16} color={theme.text} /> : <Play size={16} color={theme.text} />}
-                      <Text style={styles.previewBtnText}>{isPlaying ? 'Pause preview' : 'Play 30s preview'}</Text>
+                      {isPlaying ? (
+                        <Pause size={16} color={theme.text} />
+                      ) : (
+                        <Play size={16} color={theme.text} />
+                      )}
+                      <Text style={styles.previewBtnText}>
+                        {isPlaying ? "Pause preview" : "Play 30s preview"}
+                      </Text>
                     </Pressable>
                   )}
 
@@ -325,21 +457,37 @@ export default function MapScreen() {
                     <Pressable
                       style={[
                         styles.collectBtn,
-                        (selectedDrop.collected || selectedDrop.distance_meters > 200) && styles.collectBtnDisabled,
+                        (selectedDrop.collected ||
+                          selectedDrop.distance_meters > 200) &&
+                          styles.collectBtnDisabled,
                       ]}
-                      disabled={selectedDrop.collected || selectedDrop.distance_meters > 200 || collecting}
+                      disabled={
+                        selectedDrop.collected ||
+                        selectedDrop.distance_meters > 200 ||
+                        collecting
+                      }
                       onPress={async () => {
                         if (selectedDrop.collected || !userLocation) return;
                         setCollecting(true);
                         try {
-                          await collectDrop(selectedDrop.id, userLocation.latitude, userLocation.longitude);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          setDrops(prev =>
-                            prev.map(d => d.id === selectedDrop.id ? { ...d, collected: true } : d)
+                          await collectDrop(
+                            selectedDrop.id,
+                            userLocation.latitude,
+                            userLocation.longitude,
+                          );
+                          Haptics.notificationAsync(
+                            Haptics.NotificationFeedbackType.Success,
+                          );
+                          setDrops((prev) =>
+                            prev.map((d) =>
+                              d.id === selectedDrop.id
+                                ? { ...d, collected: true }
+                                : d,
+                            ),
                           );
                           setSelectedDrop({ ...selectedDrop, collected: true });
                         } catch (e) {
-                          console.error('Failed to collect drop:', e);
+                          console.error("Failed to collect drop:", e);
                         } finally {
                           setCollecting(false);
                         }
@@ -349,14 +497,16 @@ export default function MapScreen() {
                         <ActivityIndicator color="#fff" />
                       ) : (
                         <Text style={styles.collectBtnText}>
-                          {selectedDrop.collected ? 'Collected ✓' : 'Collect'}
+                          {selectedDrop.collected ? "Collected ✓" : "Collect"}
                         </Text>
                       )}
                     </Pressable>
                     {selectedDrop.spotify_url && (
                       <Pressable
                         style={styles.spotifyBtn}
-                        onPress={() => Linking.openURL(selectedDrop.spotify_url!)}
+                        onPress={() =>
+                          Linking.openURL(selectedDrop.spotify_url!)
+                        }
                       >
                         <ExternalLink size={16} color={theme.neonGreen} />
                         <Text style={styles.spotifyBtnText}>Spotify</Text>
@@ -379,16 +529,16 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
   },
   mapHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingBottom: 14,
     zIndex: 10,
   },
   mapTitle: {
     fontSize: 24,
-    fontWeight: '800' as const,
+    fontWeight: "800" as const,
     color: theme.text,
   },
   mapSub: {
@@ -397,8 +547,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   radarBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     backgroundColor: theme.neonGreenDim,
     paddingHorizontal: 12,
@@ -408,48 +558,48 @@ const styles = StyleSheet.create({
   radarText: {
     color: theme.neonGreen,
     fontSize: 13,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
   },
   mapArea: {
     flex: 1,
     margin: 16,
     marginTop: 0,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: 'rgba(108, 43, 217, 0.25)',
+    borderColor: "rgba(108, 43, 217, 0.25)",
   },
   map: {
     flex: 1,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0a0a1a',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#0a0a1a",
     gap: 16,
   },
   loadingText: {
     color: theme.textSecondary,
     fontSize: 15,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   errorText: {
     color: theme.textSecondary,
     fontSize: 15,
-    fontWeight: '500' as const,
-    textAlign: 'center',
+    fontWeight: "500" as const,
+    textAlign: "center",
     paddingHorizontal: 32,
     lineHeight: 22,
   },
   markerContainer: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   markerPulse: {
-    position: 'absolute',
+    position: "absolute",
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -459,17 +609,17 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.7,
     shadowRadius: 10,
     elevation: 6,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: "rgba(255,255,255,0.2)",
   },
   collectedDot: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 2,
     right: 2,
     width: 8,
@@ -477,37 +627,37 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: theme.neonGreen,
     borderWidth: 1,
-    borderColor: '#080818',
+    borderColor: "#080818",
   },
   recenterBtn: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: 'rgba(10, 10, 26, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(10, 10, 26, 0.85)",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(108, 43, 217, 0.3)',
+    borderColor: "rgba(108, 43, 217, 0.3)",
   },
   legendOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 12,
     left: 12,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
-    backgroundColor: 'rgba(10, 10, 26, 0.85)',
+    backgroundColor: "rgba(10, 10, 26, 0.85)",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(108, 43, 217, 0.2)',
+    borderColor: "rgba(108, 43, 217, 0.2)",
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   legendDot: {
@@ -518,12 +668,12 @@ const styles = StyleSheet.create({
   legendText: {
     color: theme.textSecondary,
     fontSize: 11,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
   },
   modalSheet: {
     backgroundColor: theme.surface,
@@ -540,12 +690,12 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: theme.textMuted,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 20,
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   modalGenreDot: {
@@ -557,16 +707,16 @@ const styles = StyleSheet.create({
   modalGenre: {
     fontSize: 14,
     color: theme.textSecondary,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
     flex: 1,
   },
   modalClose: {
     padding: 4,
   },
   songRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 14,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     marginBottom: 4,
   },
   albumArt: {
@@ -576,16 +726,16 @@ const styles = StyleSheet.create({
   },
   albumArtPlaceholder: {
     backgroundColor: theme.surfaceLight,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   songDetails: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   modalSong: {
     fontSize: 18,
-    fontWeight: '800' as const,
+    fontWeight: "800" as const,
     color: theme.text,
   },
   modalArtist: {
@@ -594,8 +744,8 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginTop: 8,
   },
@@ -607,12 +757,12 @@ const styles = StyleSheet.create({
   },
   rarityText: {
     fontSize: 11,
-    fontWeight: '700' as const,
-    textTransform: 'capitalize',
+    fontWeight: "700" as const,
+    textTransform: "capitalize",
   },
   distanceBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     backgroundColor: theme.surfaceLight,
     paddingHorizontal: 8,
@@ -622,17 +772,17 @@ const styles = StyleSheet.create({
   distanceText: {
     fontSize: 11,
     color: theme.textSecondary,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   proximityHint: {
     fontSize: 13,
     color: theme.pink,
     marginTop: 8,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   previewBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     backgroundColor: theme.surfaceLight,
     paddingHorizontal: 16,
@@ -643,10 +793,10 @@ const styles = StyleSheet.create({
   previewBtnText: {
     color: theme.text,
     fontSize: 14,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   modalActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 14,
   },
@@ -655,19 +805,19 @@ const styles = StyleSheet.create({
     backgroundColor: theme.pink,
     paddingVertical: 14,
     borderRadius: 14,
-    alignItems: 'center',
+    alignItems: "center",
   },
   collectBtnDisabled: {
     opacity: 0.5,
   },
   collectBtnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
   },
   spotifyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     backgroundColor: theme.neonGreenDim,
     paddingHorizontal: 18,
@@ -677,6 +827,6 @@ const styles = StyleSheet.create({
   spotifyBtnText: {
     color: theme.neonGreen,
     fontSize: 13,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
 });
