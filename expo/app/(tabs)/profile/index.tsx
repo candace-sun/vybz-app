@@ -32,7 +32,13 @@ import {
 import * as Haptics from "expo-haptics";
 
 import Colors from "@/constants/colors";
-import { getProfile, getCollection, logout, UserProfile, CollectedSong } from "@/services/api";
+import {
+  getProfile,
+  getCollection,
+  logout,
+  UserProfile,
+  CollectedSong,
+} from "@/services/api";
 
 const theme = Colors.dark;
 
@@ -54,13 +60,31 @@ const settingsRows: SettingRow[] = [
   { icon: <Eye size={18} color={theme.purpleLight} />, label: "Visibility" },
   { icon: <Bell size={18} color={theme.coinYellow} />, label: "Notifications" },
   { icon: <Lock size={18} color={theme.neonGreen} />, label: "Passwords" },
-  { icon: <FileText size={18} color={theme.textSecondary} />, label: "Privacy Policy" },
+  {
+    icon: <FileText size={18} color={theme.textSecondary} />,
+    label: "Privacy Policy",
+  },
   { icon: <Shield size={18} color="#4FC3F7" />, label: "Terms of Service" },
-  { icon: <Users size={18} color={theme.pink} />, label: "Community Guidelines" },
-  { icon: <AlertTriangle size={18} color={theme.danger} />, label: "Report an Issue", color: theme.danger },
+  {
+    icon: <Users size={18} color={theme.pink} />,
+    label: "Community Guidelines",
+  },
+  {
+    icon: <AlertTriangle size={18} color={theme.danger} />,
+    label: "Report an Issue",
+    color: theme.danger,
+  },
 ];
 
-function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) {
+function StatCard({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: string | number;
+  label: string;
+}) {
   return (
     <View style={styles.statCard}>
       {icon}
@@ -75,18 +99,28 @@ function SongCard({ song }: { song: CollectedSong }) {
   return (
     <View style={styles.songCard}>
       {song.image_url ? (
-        <Image source={{ uri: song.image_url }} style={styles.songArt} contentFit="cover" />
+        <Image
+          source={{ uri: song.image_url }}
+          style={styles.songArt}
+          contentFit="cover"
+        />
       ) : (
         <View style={[styles.songArt, styles.songArtPlaceholder]}>
           <Music size={20} color={theme.textMuted} />
         </View>
       )}
       <View style={styles.songInfo}>
-        <Text style={styles.songTitle} numberOfLines={1}>{song.title}</Text>
-        <Text style={styles.songArtist} numberOfLines={1}>{song.artist}</Text>
+        <Text style={styles.songTitle} numberOfLines={1}>
+          {song.title}
+        </Text>
+        <Text style={styles.songArtist} numberOfLines={1}>
+          {song.artist}
+        </Text>
       </View>
       <View style={[styles.rarityBadge, { borderColor: rarityColor }]}>
-        <Text style={[styles.rarityText, { color: rarityColor }]}>{song.rarity}</Text>
+        <Text style={[styles.rarityText, { color: rarityColor }]}>
+          {song.rarity}
+        </Text>
       </View>
     </View>
   );
@@ -118,7 +152,11 @@ export default function ProfileScreen() {
   useEffect(() => {
     loadData().finally(() => {
       setLoading(false);
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }).start();
     });
   }, []);
 
@@ -144,29 +182,44 @@ export default function ProfileScreen() {
     );
   }
 
-  const xpProgress = profile && profile.next_level_xp
-    ? (profile.xp / profile.next_level_xp) * 100
-    : 0;
+  const xpProgress =
+    profile && profile.next_level_xp
+      ? (profile.xp / profile.next_level_xp) * 100
+      : 0;
 
   return (
     <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 16 },
+        ]}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.pink} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.pink}
+          />
+        }
       >
         <Animated.View style={{ opacity: fadeAnim }}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.screenTitle}>Profile</Text>
             <View style={styles.headerButtons}>
-              <Pressable
+              {/* <Pressable
                 style={styles.settingsBtn}
-                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                onPress={() =>
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                }
               >
                 <Settings size={22} color={theme.textSecondary} />
-              </Pressable>
-              <Pressable style={[styles.settingsBtn, styles.logoutBtn]} onPress={handleLogout}>
+              </Pressable> */}
+              <Pressable
+                style={[styles.settingsBtn, styles.logoutBtn]}
+                onPress={handleLogout}
+              >
                 <LogOut size={22} color={theme.danger} />
               </Pressable>
             </View>
@@ -199,7 +252,12 @@ export default function ProfileScreen() {
                     <Text style={styles.profileTagText}>{profile.zodiac}</Text>
                   </View>
                 )}
-                <View style={[styles.profileTag, { backgroundColor: "rgba(255, 45, 120, 0.15)" }]}>
+                <View
+                  style={[
+                    styles.profileTag,
+                    { backgroundColor: "rgba(255, 45, 120, 0.15)" },
+                  ]}
+                >
                   <Text style={[styles.profileTagText, { color: theme.pink }]}>
                     Lvl {profile?.level}
                   </Text>
@@ -209,7 +267,12 @@ export default function ProfileScreen() {
 
             {!profile?.mbti && !profile?.zodiac && (
               <View style={styles.tagRow}>
-                <View style={[styles.profileTag, { backgroundColor: "rgba(255, 45, 120, 0.15)" }]}>
+                <View
+                  style={[
+                    styles.profileTag,
+                    { backgroundColor: "rgba(255, 45, 120, 0.15)" },
+                  ]}
+                >
                   <Text style={[styles.profileTagText, { color: theme.pink }]}>
                     Lvl {profile?.level}
                   </Text>
@@ -232,10 +295,26 @@ export default function ProfileScreen() {
 
           {/* Stats Row */}
           <View style={styles.statsRow}>
-            <StatCard icon={<Zap size={18} color={theme.xpGold} />} value={profile?.xp ?? 0} label="Total XP" />
-            <StatCard icon={<Coins size={18} color={theme.coinYellow} />} value={profile?.coins ?? 0} label="Coins" />
-            <StatCard icon={<Sprout size={18} color={theme.neonGreen} />} value="—" label="Plants" />
-            <StatCard icon={<Music size={18} color={theme.pink} />} value={songs.length} label="Songs" />
+            <StatCard
+              icon={<Zap size={18} color={theme.xpGold} />}
+              value={profile?.xp ?? 0}
+              label="Total XP"
+            />
+            <StatCard
+              icon={<Coins size={18} color={theme.coinYellow} />}
+              value={profile?.coins ?? 0}
+              label="Coins"
+            />
+            <StatCard
+              icon={<Sprout size={18} color={theme.neonGreen} />}
+              value="—"
+              label="Plants"
+            />
+            <StatCard
+              icon={<Music size={18} color={theme.pink} />}
+              value={songs.length}
+              label="Songs"
+            />
           </View>
 
           {/* Song Collection */}
@@ -245,7 +324,9 @@ export default function ProfileScreen() {
               <View style={styles.emptyCollection}>
                 <Music size={32} color={theme.textMuted} />
                 <Text style={styles.emptyText}>No songs collected yet</Text>
-                <Text style={styles.emptySubtext}>Collect drops on the map to fill your collection</Text>
+                <Text style={styles.emptySubtext}>
+                  Collect drops on the map to fill your collection
+                </Text>
               </View>
             ) : (
               songs.map((song) => <SongCard key={song.id} song={song} />)
@@ -253,7 +334,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Settings */}
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <Text style={styles.sectionTitle}>Settings</Text>
             <View style={styles.settingsList}>
               {settingsRows.map((row, i) => (
@@ -270,7 +351,7 @@ export default function ProfileScreen() {
                 </Pressable>
               ))}
             </View>
-          </View>
+          </View> */}
         </Animated.View>
       </ScrollView>
     </View>
@@ -279,48 +360,187 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.background },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.background },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.background,
+  },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   screenTitle: { fontSize: 26, fontWeight: "800" as const, color: theme.text },
   headerButtons: { flexDirection: "row", gap: 10 },
-  settingsBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: theme.surface, justifyContent: "center", alignItems: "center" },
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: theme.surface,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   logoutBtn: { backgroundColor: "rgba(255, 0, 0, 0.1)" },
-  profileCard: { backgroundColor: theme.surface, borderRadius: 22, padding: 24, alignItems: "center", borderWidth: 1, borderColor: theme.cardBorder, marginBottom: 16 },
-  avatar: { width: 88, height: 88, borderRadius: 44, borderWidth: 3, borderColor: theme.purple, marginBottom: 14 },
-  avatarPlaceholder: { backgroundColor: theme.surfaceLight, justifyContent: "center", alignItems: "center" },
-  avatarInitial: { fontSize: 32, fontWeight: "800" as const, color: theme.purpleLight },
+  profileCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 22,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.cardBorder,
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
+    borderColor: theme.purple,
+    marginBottom: 14,
+  },
+  avatarPlaceholder: {
+    backgroundColor: theme.surfaceLight,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarInitial: {
+    fontSize: 32,
+    fontWeight: "800" as const,
+    color: theme.purpleLight,
+  },
   username: { fontSize: 20, fontWeight: "800" as const, color: theme.text },
-  bio: { fontSize: 14, color: theme.textSecondary, marginTop: 6, textAlign: "center" },
+  bio: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    marginTop: 6,
+    textAlign: "center",
+  },
   tagRow: { flexDirection: "row", gap: 8, marginTop: 14 },
-  profileTag: { backgroundColor: "rgba(108, 43, 217, 0.15)", paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12 },
-  profileTagText: { fontSize: 13, color: theme.purpleLight, fontWeight: "700" as const },
+  profileTag: {
+    backgroundColor: "rgba(108, 43, 217, 0.15)",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  profileTagText: {
+    fontSize: 13,
+    color: theme.purpleLight,
+    fontWeight: "700" as const,
+  },
   xpSection: { width: "100%", marginTop: 18 },
-  xpHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  xpLabel: { fontSize: 13, color: theme.textSecondary, fontWeight: "600" as const },
+  xpHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  xpLabel: {
+    fontSize: 13,
+    color: theme.textSecondary,
+    fontWeight: "600" as const,
+  },
   xpCount: { fontSize: 13, color: theme.xpGold, fontWeight: "700" as const },
-  xpBar: { height: 6, backgroundColor: theme.surfaceLight, borderRadius: 3, overflow: "hidden" },
+  xpBar: {
+    height: 6,
+    backgroundColor: theme.surfaceLight,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
   xpBarFill: { height: "100%", backgroundColor: theme.xpGold, borderRadius: 3 },
   statsRow: { flexDirection: "row", gap: 10, marginBottom: 24 },
-  statCard: { flex: 1, backgroundColor: theme.surface, borderRadius: 16, padding: 12, alignItems: "center", borderWidth: 1, borderColor: theme.cardBorder, gap: 4 },
+  statCard: {
+    flex: 1,
+    backgroundColor: theme.surface,
+    borderRadius: 16,
+    padding: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.cardBorder,
+    gap: 4,
+  },
   statValue: { fontSize: 18, fontWeight: "800" as const, color: theme.text },
-  statLabel: { fontSize: 11, color: theme.textMuted, fontWeight: "500" as const },
+  statLabel: {
+    fontSize: 11,
+    color: theme.textMuted,
+    fontWeight: "500" as const,
+  },
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: "700" as const, color: theme.textSecondary, marginBottom: 12 },
-  songCard: { flexDirection: "row", alignItems: "center", backgroundColor: theme.surface, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: theme.cardBorder, gap: 12 },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: theme.textSecondary,
+    marginBottom: 12,
+  },
+  songCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.surface,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: theme.cardBorder,
+    gap: 12,
+  },
   songArt: { width: 48, height: 48, borderRadius: 10 },
-  songArtPlaceholder: { backgroundColor: theme.surfaceLight, justifyContent: "center", alignItems: "center" },
+  songArtPlaceholder: {
+    backgroundColor: theme.surfaceLight,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   songInfo: { flex: 1 },
   songTitle: { fontSize: 14, fontWeight: "700" as const, color: theme.text },
   songArtist: { fontSize: 12, color: theme.textSecondary, marginTop: 2 },
-  rarityBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  rarityText: { fontSize: 11, fontWeight: "700" as const, textTransform: "capitalize" },
+  rarityBadge: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  rarityText: {
+    fontSize: 11,
+    fontWeight: "700" as const,
+    textTransform: "capitalize",
+  },
   emptyCollection: { alignItems: "center", paddingVertical: 32, gap: 8 },
-  emptyText: { fontSize: 15, fontWeight: "600" as const, color: theme.textSecondary },
+  emptyText: {
+    fontSize: 15,
+    fontWeight: "600" as const,
+    color: theme.textSecondary,
+  },
   emptySubtext: { fontSize: 13, color: theme.textMuted, textAlign: "center" },
-  settingsList: { backgroundColor: theme.surface, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: theme.cardBorder },
-  settingRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 16 },
-  settingRowBorder: { borderBottomWidth: 1, borderBottomColor: "rgba(108, 43, 217, 0.08)" },
-  settingIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: theme.surfaceLight, justifyContent: "center", alignItems: "center", marginRight: 12 },
-  settingLabel: { flex: 1, fontSize: 15, color: theme.text, fontWeight: "500" as const },
+  settingsList: {
+    backgroundColor: theme.surface,
+    borderRadius: 18,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: theme.cardBorder,
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  settingRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(108, 43, 217, 0.08)",
+  },
+  settingIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: theme.surfaceLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  settingLabel: {
+    flex: 1,
+    fontSize: 15,
+    color: theme.text,
+    fontWeight: "500" as const,
+  },
 });

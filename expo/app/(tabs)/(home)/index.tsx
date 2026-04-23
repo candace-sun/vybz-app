@@ -184,6 +184,7 @@ function LeaderboardSection() {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const headerAnim = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   useEffect(() => {
     Animated.timing(headerAnim, {
@@ -217,7 +218,12 @@ export default function HomeScreen() {
                 <Text style={styles.greeting}>{"vibe today?"}</Text>
               </View>
               <Pressable style={styles.gardenLink}>
-                <Text style={styles.gardenLinkText}>check garden</Text>
+                <Text
+                  style={styles.gardenLinkText}
+                  onPress={() => router.push("/garden")}
+                >
+                  check garden
+                </Text>
                 <Text style={styles.gardenLinkDash}> —</Text>
               </Pressable>
             </View>
