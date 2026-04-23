@@ -30,12 +30,14 @@ function RootLayoutNav() {
         router.replace("/(tabs)/(home)");
       }
 
-      setAuthChecked(true);
-      SplashScreen.hideAsync();
+      if (!authChecked) {
+        setAuthChecked(true);
+        SplashScreen.hideAsync();
+      }
     }
 
     checkAuth();
-  }, []);
+  }, [segments]);
 
   if (!authChecked) return null;
 
