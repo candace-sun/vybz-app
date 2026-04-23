@@ -110,9 +110,9 @@ export const musicDrops: MusicDrop[] = [
 ];
 
 export const plants: Plant[] = [
-  { id: '1', name: 'Lotus', genre: 'EDM', stage: 3, maxStage: 4, stageLabel: 'Bloom', xpNeeded: 100, xpCurrent: 75, emoji: '🪷' },
-  { id: '2', name: 'Orchid', genre: 'R&B', stage: 2, maxStage: 4, stageLabel: 'Bud', xpNeeded: 80, xpCurrent: 50, emoji: '🌸' },
-  { id: '3', name: 'Coleus', genre: 'Rap', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 60, xpCurrent: 20, emoji: '🌿' },
+  { id: '1', name: 'Lotus', genre: 'EDM', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 100, xpCurrent: 0, emoji: '🪷' },
+  { id: '2', name: 'Orchid', genre: 'R&B', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 80, xpCurrent: 0, emoji: '🌸' },
+  { id: '3', name: 'Coleus', genre: 'Rap', stage: 1, maxStage: 4, stageLabel: 'Seedling', xpNeeded: 60, xpCurrent: 0, emoji: '🌿' },
 ];
 
 export const gardenItems: GardenItem[] = [
