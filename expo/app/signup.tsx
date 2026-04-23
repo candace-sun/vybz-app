@@ -6,10 +6,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Eye, EyeOff } from "lucide-react-native";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react-native";
 import Colors from "@/constants/colors";
+import { register } from "@/services/api";
 
 const theme = Colors.dark;
 
@@ -27,6 +30,7 @@ function validateEmail(email: string) {
 
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,8 +38,9 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!username.trim() || !email.trim() || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
@@ -59,7 +64,15 @@ export default function SignupScreen() {
     }
 
     setError("");
-    // Add registration logic here.
+    setLoading(true);
+    try {
+      await register(username.trim(), email.trim(), password);
+      router.replace("/(tabs)/(home)");
+    } catch (e: any) {
+      setError(e.message ?? "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,6 +84,10 @@ export default function SignupScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={22} color={theme.text} />
+        </Pressable>
+
         <Text style={styles.title}>Sign up</Text>
         <Text style={styles.subtitle}>
           Create a new account and join the community.
@@ -161,8 +178,12 @@ export default function SignupScreen() {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Create account</Text>
+          <Pressable style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Create account</Text>
+            )}
           </Pressable>
         </View>
       </ScrollView>
@@ -178,6 +199,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 36,
+  },
+  backButton: {
+    marginBottom: 16,
+    alignSelf: "flex-start",
+    padding: 4,
   },
   title: {
     fontSize: 32,

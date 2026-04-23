@@ -6,43 +6,41 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Eye, EyeOff } from "lucide-react-native";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react-native";
 import Colors from "@/constants/colors";
+import { login } from "@/services/api";
 
 const theme = Colors.dark;
 
-function validatePassword(password: string) {
-  return (
-    password.length >= 8 &&
-    /[0-9]/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
-}
-
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const [username, setUsername] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    if (!username.trim() || !password) {
-      setError("Please enter both username and password.");
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      setError(
-        "Password must be 8+ chars and include a number and special character.",
-      );
+  const handleSubmit = async () => {
+    if (!email.trim() || !password) {
+      setError("Please enter both email and password.");
       return;
     }
 
     setError("");
-    // Add authentication logic here.
+    setLoading(true);
+    try {
+      await login(email.trim(), password);
+      router.replace("/(tabs)/(home)");
+    } catch (e: any) {
+      setError(e.message ?? "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,6 +52,10 @@ export default function LoginScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={22} color={theme.text} />
+        </Pressable>
+
         <Text style={styles.title}>Log in</Text>
         <Text style={styles.subtitle}>
           Access your account and continue your vibe.
@@ -61,15 +63,16 @@ export default function LoginScreen() {
 
         <View style={styles.formCard}>
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Username</Text>
+            <Text style={styles.fieldLabel}>Email</Text>
             <TextInput
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Enter username"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
               placeholderTextColor={theme.textSecondary}
               style={styles.input}
               autoCapitalize="none"
-              autoComplete="username"
+              autoComplete="email"
+              keyboardType="email-address"
             />
           </View>
 
@@ -105,8 +108,12 @@ export default function LoginScreen() {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Log in</Text>
+          <Pressable style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Log in</Text>
+            )}
           </Pressable>
         </View>
       </ScrollView>
@@ -122,6 +129,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 36,
+  },
+  backButton: {
+    marginBottom: 16,
+    alignSelf: "flex-start",
+    padding: 4,
   },
   title: {
     fontSize: 32,
