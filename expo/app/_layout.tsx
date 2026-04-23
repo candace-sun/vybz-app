@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { getAccessToken } from "@/services/api";
+import { getAccessToken, clearTokens } from "@/services/api";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -18,7 +18,20 @@ function RootLayoutNav() {
 
   useEffect(() => {
     async function checkAuth() {
-      const token = await getAccessToken();
+      let token = await getAccessToken();
+
+      // On web: if there's a stored token but no active session flag (i.e. the
+      // user closed the browser and came back), treat them as logged out.
+      if (
+        token &&
+        typeof window !== "undefined" &&
+        window.sessionStorage &&
+        !window.sessionStorage.getItem("session_active")
+      ) {
+        await clearTokens();
+        token = null;
+      }
+
       const inAuthScreen =
         segments[0] === "auth" ||
         segments[0] === "login" ||
