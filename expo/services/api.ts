@@ -12,6 +12,11 @@ export async function saveTokens(accessToken: string, refreshToken: string) {
     [TOKEN_KEY, accessToken],
     [REFRESH_TOKEN_KEY, refreshToken],
   ]);
+  // On web, mark this as an active browser session so we can detect
+  // when the user closes the tab and comes back (vs. just refreshing).
+  if (typeof window !== "undefined" && window.sessionStorage) {
+    window.sessionStorage.setItem("session_active", "true");
+  }
 }
 
 export async function getAccessToken(): Promise<string | null> {
